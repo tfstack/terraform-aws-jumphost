@@ -11,11 +11,11 @@ This example demonstrates how to deploy a jumphost using **EC2 Instance Connect*
 
 ## Features
 
-✅ **Public subnet deployment** - Instance is reachable from internet
-✅ **Elastic IP** - Static public IP address
-✅ **EC2 Instance Connect** - SSH access without managing keys
-✅ **Security group** - Only allows SSH from your IP
-✅ **Additional tools** - Installs `mtr` and `nc` for network diagnostics
+- ✅ **Public subnet deployment** - Instance is reachable from internet
+- ✅ **Elastic IP** - Static public IP address
+- ✅ **EC2 Instance Connect** - SSH access without managing keys
+- ✅ **Security group** - Only allows SSH from your IP
+- ✅ **Additional tools** - Installs `mtr` and `nc` for network diagnostics
 
 ## Usage
 

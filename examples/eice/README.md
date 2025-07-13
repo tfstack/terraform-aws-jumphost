@@ -11,11 +11,11 @@ This example demonstrates how to deploy a jumphost using **EC2 Instance Connect 
 
 ## Features
 
-✅ **Private subnet deployment** - Instance is isolated from internet
-✅ **EC2 Instance Connect Endpoint** - VPC endpoint for SSH access
-✅ **No Elastic IP** - Instance stays private
-✅ **Security group** - Only allows SSH from your IP
-✅ **Additional tools** - Installs `mtr` and `netcat` for diagnostics
+- ✅ **Private subnet deployment** - Instance is isolated from internet
+- ✅ **EC2 Instance Connect Endpoint** - VPC endpoint for SSH access
+- ✅ **No Elastic IP** - Instance stays private
+- ✅ **Security group** - Only allows SSH from your IP
+- ✅ **Additional tools** - Installs `mtr` and `netcat` for diagnostics
 
 ## Usage
 

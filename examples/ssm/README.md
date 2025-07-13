@@ -11,12 +11,12 @@ This example demonstrates how to deploy a jumphost using **AWS Systems Manager S
 
 ## Features
 
-✅ **Private subnet deployment** - Instance is isolated from internet
-✅ **SSM Session Manager** - Secure access without SSH keys
-✅ **No Elastic IP** - Instance stays private
-✅ **Security group** - Only allows SSH from your IP (for backup)
-✅ **SSM Agent** - Automatically installed and configured
-✅ **Additional tools** - Installs `mtr` and `nc` for diagnostics
+- ✅ **Private subnet deployment** - Instance is isolated from internet
+- ✅ **SSM Session Manager** - Secure access without SSH keys
+- ✅ **No Elastic IP** - Instance stays private
+- ✅ **Security group** - Only allows SSH from your IP (for backup)
+- ✅ **SSM Agent** - Automatically installed and configured
+- ✅ **Additional tools** - Installs `mtr` and `nc` for diagnostics
 
 ## Usage
 
