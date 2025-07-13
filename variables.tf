@@ -154,3 +154,9 @@ variable "instance_connect_endpoint_subnet_id" {
   type        = string
   default     = ""
 }
+
+variable "enable_redhat_repos" {
+  description = "Enable Red Hat repositories for RHEL instances (requires manual registration after deployment). If false, uses default repositories that come with RHEL AMIs."
+  type        = bool
+  default     = false
+}

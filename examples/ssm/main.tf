@@ -45,10 +45,10 @@ data "http" "my_public_ip" {
 # Jumphost
 ############################################################
 
-module "jumphost-ssm" {
+module "jumphost-ssm-amazonlinux2" {
   source = "../../"
 
-  name      = "${local.name}-ssm"
+  name      = "${local.name}-ssm-amazonlinux2"
   ami_type  = "amazonlinux2"
   subnet_id = module.vpc.private_subnet_ids[0]
   vpc_id    = module.vpc.vpc_id
@@ -64,6 +64,52 @@ module "jumphost-ssm" {
   tags = local.tags
 }
 
-output "jumphost-ssm" {
-  value = module.jumphost-ssm
+output "jumphost-ssm-amazonlinux2" {
+  value = module.jumphost-ssm-amazonlinux2
+}
+
+module "jumphost-ssm-rhel8" {
+  source = "../../"
+
+  name      = "${local.name}-ssm-rhel8"
+  ami_type  = "rhel8"
+  subnet_id = module.vpc.private_subnet_ids[0]
+  vpc_id    = module.vpc.vpc_id
+
+  create_security_group = true
+  allowed_cidr_blocks   = ["${data.http.my_public_ip.response_body}/32"]
+  assign_eip            = false
+
+  user_data_extra = <<-EOT
+    dnf install -y mtr nc
+  EOT
+
+  tags = local.tags
+}
+
+output "jumphost-ssm-rhel8" {
+  value = module.jumphost-ssm-rhel8
+}
+
+module "jumphost-ssm-rhel9" {
+  source = "../../"
+
+  name      = "${local.name}-ssm-rhel9"
+  ami_type  = "rhel9"
+  subnet_id = module.vpc.private_subnet_ids[0]
+  vpc_id    = module.vpc.vpc_id
+
+  create_security_group = true
+  allowed_cidr_blocks   = ["${data.http.my_public_ip.response_body}/32"]
+  assign_eip            = false
+
+  user_data_extra = <<-EOT
+    dnf install -y mtr nc
+  EOT
+
+  tags = local.tags
+}
+
+output "jumphost-ssm-rhel9" {
+  value = module.jumphost-ssm-rhel9
 }

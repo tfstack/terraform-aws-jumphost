@@ -2,6 +2,54 @@
 
 Reusable Terraform module to deploy a secure, SSM-enabled EC2 jumphost in AWS
 
+## Features
+
+- **Multi-OS Support**: Amazon Linux 2/2023, Ubuntu 20.04, RHEL 8/9
+- **SSM Integration**: Automatic SSM Agent installation and IAM permissions
+- **EC2 Instance Connect**: Optional EC2 Instance Connect support for SSH access
+- **Security**: Configurable security groups, encrypted volumes, IMDSv2
+- **Flexible Deployment**: Public or private subnets with optional EIP
+- **Red Hat Support**: Enhanced RHEL 8/9 support with repository management
+
+## Red Hat Enterprise Linux Support
+
+For RHEL instances, the module includes enhanced support:
+
+- **Automatic SSM Agent**: Installs and configures AWS Systems Manager Agent using multiple fallback methods
+- **Repository Management**: Optional Red Hat repository activation via `enable_redhat_repos`
+- **Robust Installation**: Multiple installation methods ensure packages are installed regardless of Red Hat registration status
+- **Better Error Handling**: Improved logging and error recovery
+
+### Installation Strategy for RHEL Instances
+
+The module uses a multi-method approach to ensure packages are installed:
+
+1. **Default Repositories**: First tries to install from the repositories available in the RHEL AMI
+2. **EPEL Repository**: Falls back to EPEL if packages aren't in default repositories
+3. **AWS S3 Download**: Downloads packages directly from AWS S3 if repository installation fails
+4. **Alternative Package Names**: Tries alternative package names as a last resort
+
+This approach ensures that SSM Agent and EC2 Instance Connect are installed regardless of whether the instance is registered with Red Hat or not.
+
+### Red Hat Repository Support
+
+The `enable_redhat_repos` variable provides optional Red Hat repository support:
+
+- **When enabled**: Attempts to enable Red Hat repositories if the instance is registered
+- **When disabled or unregistered**: Uses default repositories that come with RHEL AMIs
+- **Graceful fallback**: Continues with available repositories if Red Hat repositories are not accessible
+
+```hcl
+module "jumphost" {
+  source = "path/to/module"
+
+  ami_type = "rhel9"
+  enable_redhat_repos = true  # Optional: enables Red Hat repos if registered
+
+  # ... other configuration
+}
+```
+
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
@@ -50,6 +98,7 @@ No modules.
 | <a name="input_enable_instance_connect"></a> [enable\_instance\_connect](#input\_enable\_instance\_connect) | Install and enable EC2 Instance Connect for SSH (Amazon Linux & Ubuntu only). | `bool` | `false` | no |
 | <a name="input_enable_instance_connect_endpoint"></a> [enable\_instance\_connect\_endpoint](#input\_enable\_instance\_connect\_endpoint) | Create an EC2 Instance Connect Endpoint for private subnet access (requires VPC endpoints or NAT). | `bool` | `false` | no |
 | <a name="input_enable_ssm"></a> [enable\_ssm](#input\_enable\_ssm) | Enable SSM Agent and permissions via instance profile. | `bool` | `true` | no |
+| <a name="input_enable_redhat_repos"></a> [enable\_redhat\_repos](#input\_enable\_redhat\_repos) | Enable Red Hat repository management for RHEL instances. | `bool` | `false` | no |
 | <a name="input_iam_instance_profile_name"></a> [iam\_instance\_profile\_name](#input\_iam\_instance\_profile\_name) | Existing IAM instance profile to attach instead of creating one. | `string` | `""` | no |
 | <a name="input_instance_connect_endpoint_subnet_id"></a> [instance\_connect\_endpoint\_subnet\_id](#input\_instance\_connect\_endpoint\_subnet\_id) | Subnet ID for the EC2 Instance Connect Endpoint (should be private with NAT or VPC endpoints). | `string` | `""` | no |
 | <a name="input_instance_type"></a> [instance\_type](#input\_instance\_type) | EC2 instance type. | `string` | `"t3.micro"` | no |
