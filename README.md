@@ -8,7 +8,7 @@ Reusable Terraform module to deploy a secure, SSM-enabled EC2 jumphost in AWS
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.3.0 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 5.0 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 6.0 |
 
 ## Providers
 
@@ -42,7 +42,7 @@ No modules.
 |------|-------------|------|---------|:--------:|
 | <a name="input_allowed_cidr_blocks"></a> [allowed\_cidr\_blocks](#input\_allowed\_cidr\_blocks) | List of CIDR ranges allowed to connect via SSH when create\_security\_group = true. | `list(string)` | <pre>[<br/>  "0.0.0.0/0"<br/>]</pre> | no |
 | <a name="input_ami_id_override"></a> [ami\_id\_override](#input\_ami\_id\_override) | Optional explicit AMI ID to use instead of automatic lookup. | `string` | `""` | no |
-| <a name="input_ami_type"></a> [ami\_type](#input\_ami\_type) | Logical AMI type to use. Allowed: amazonlinux2, amazonlinux2023, ubuntu. | `string` | `"amazonlinux2"` | no |
+| <a name="input_ami_type"></a> [ami\_type](#input\_ami\_type) | Logical AMI type to use. Allowed: amazonlinux2, amazonlinux2023, ubuntu, rhel8, rhel9. | `string` | `"amazonlinux2"` | no |
 | <a name="input_assign_eip"></a> [assign\_eip](#input\_assign\_eip) | Whether to allocate and associate an Elastic IP (valid only when subnet is public). | `bool` | `true` | no |
 | <a name="input_create"></a> [create](#input\_create) | Whether to create resources. Set to false to disable the module entirely. | `bool` | `true` | no |
 | <a name="input_create_security_group"></a> [create\_security\_group](#input\_create\_security\_group) | Create a dedicated security group allowing SSH/ICMP from allowed CIDRs if no security group IDs are supplied. If true, vpc\_security\_group\_ids can be empty. | `bool` | `false` | no |
