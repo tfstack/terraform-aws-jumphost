@@ -15,12 +15,12 @@ variable "name" {
 }
 
 variable "ami_type" {
-  description = "Logical AMI type to use. Allowed: amazonlinux2, amazonlinux2023, ubuntu."
+  description = "Logical AMI type to use. Allowed: amazonlinux2, amazonlinux2023, ubuntu, rhel8, rhel9."
   type        = string
   default     = "amazonlinux2"
   validation {
-    condition     = contains(["amazonlinux2", "amazonlinux2023", "ubuntu"], lower(var.ami_type))
-    error_message = "ami_type must be one of: amazonlinux2, amazonlinux2023, ubuntu."
+    condition     = contains(["amazonlinux2", "amazonlinux2023", "ubuntu", "rhel8", "rhel9"], lower(var.ami_type))
+    error_message = "ami_type must be one of: amazonlinux2, amazonlinux2023, ubuntu, rhel8, rhel9."
   }
 }
 
