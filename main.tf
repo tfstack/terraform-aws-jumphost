@@ -49,6 +49,23 @@ data "aws_ami" "selected" {
     name   = "virtualization-type"
     values = ["hvm"]
   }
+
+  # Additional filters for Red Hat AMIs
+  dynamic "filter" {
+    for_each = contains(["rhel8", "rhel9"], var.ami_type) ? [1] : []
+    content {
+      name   = "state"
+      values = ["available"]
+    }
+  }
+
+  dynamic "filter" {
+    for_each = contains(["rhel8", "rhel9"], var.ami_type) ? [1] : []
+    content {
+      name   = "architecture"
+      values = ["x86_64"]
+    }
+  }
 }
 
 # Resolve the AMI ID, preferring the override
@@ -175,153 +192,34 @@ locals {
 }
 
 #############################
-# User data
+# User data templates
 #############################
 
 locals {
-  base_user_data = <<-EOT
-    #!/bin/bash
-    exec > >(tee /var/log/user-data.log | logger -t user-data -s 2>/dev/console) 2>&1
-    set -o nounset -o pipefail
+  # Map of user data templates for each AMI type
+  user_data_templates = {
+    amazonlinux2    = "${path.module}/templates/user_data_amazonlinux2.sh"
+    amazonlinux2023 = "${path.module}/templates/user_data_amazonlinux2023.sh"
+    ubuntu          = "${path.module}/templates/user_data_ubuntu.sh"
+    rhel8           = "${path.module}/templates/user_data_rhel8.sh"
+    rhel9           = "${path.module}/templates/user_data_rhel9.sh"
+  }
 
-    echo "Starting user_data script execution..."
+  # Template variables for rendering
+  template_vars = {
+    enable_ssm              = var.enable_ssm
+    enable_instance_connect = var.enable_instance_connect
+    enable_cloudwatch_agent = var.enable_cloudwatch_agent
+    patch_and_reboot        = var.patch_and_reboot
+    user_data_extra         = var.user_data_extra
+    enable_redhat_repos     = var.enable_redhat_repos
+  }
 
-    # Determine distro ID
-    DISTRO_ID=$(awk -F= '$1=="ID"{print $2}' /etc/os-release | tr -d '"')
-    echo "Detected distro ID: $DISTRO_ID"
+  # Render the appropriate template based on AMI type
+  base_user_data = templatefile(local.user_data_templates[var.ami_type], local.template_vars)
 
-    # Get AWS region from instance metadata
-    AWS_REGION=$(curl -s http://169.254.169.254/latest/meta-data/placement/region)
-    echo "AWS Region: $AWS_REGION"
-
-    # Test network connectivity
-    echo "Testing network connectivity..."
-    if ! curl -s --connect-timeout 10 https://www.google.com > /dev/null; then
-      echo "WARNING: No internet connectivity detected"
-    else
-      echo "Internet connectivity confirmed"
-    fi
-
-    # Basic system update (don't fail on errors)
-    echo "Performing system updates..."
-    if command -v dnf >/dev/null 2>&1; then
-      dnf update -y || echo "System update failed, continuing..."
-    elif command -v yum >/dev/null 2>&1; then
-      yum update -y || echo "System update failed, continuing..."
-    elif command -v apt-get >/dev/null 2>&1; then
-      apt-get update -y && apt-get upgrade -y || echo "System update failed, continuing..."
-    fi
-
-    # Install & enable SSM Agent
-    echo "Installing SSM Agent..."
-    case "$DISTRO_ID" in
-      amzn)
-        echo "Installing SSM Agent for Amazon Linux..."
-        if grep -q '2023' /etc/os-release; then
-          dnf install -y amazon-ssm-agent || echo "SSM Agent installation failed"
-        else
-          yum install -y amazon-ssm-agent || echo "SSM Agent installation failed"
-        fi
-        systemctl enable --now amazon-ssm-agent || echo "Failed to enable SSM Agent"
-        ;;
-      rhel)
-        echo "Installing SSM Agent for RedHat..."
-        mkdir -p /tmp/ssm
-        cd /tmp/ssm
-        # Use current region instead of hardcoded us-west-2
-        curl -O "https://s3.$${AWS_REGION}.amazonaws.com/amazon-ssm-$${AWS_REGION}/latest/linux_amd64/amazon-ssm-agent.rpm" || echo "Failed to download SSM Agent RPM"
-        if [ -f amazon-ssm-agent.rpm ]; then
-          dnf install -y amazon-ssm-agent.rpm || echo "SSM Agent RPM installation failed"
-          systemctl enable --now amazon-ssm-agent || echo "Failed to enable SSM Agent"
-        else
-          echo "SSM Agent RPM not found, trying alternative installation..."
-          # Alternative: try to install from AWS Systems Manager
-          dnf install -y amazon-ssm-agent || echo "Alternative SSM Agent installation failed"
-          systemctl enable --now amazon-ssm-agent || echo "Failed to enable SSM Agent"
-        fi
-        ;;
-      ubuntu|debian)
-        echo "Installing SSM Agent for Ubuntu/Debian..."
-        apt-get update -y
-        apt-get install -y snapd
-        snap install amazon-ssm-agent --classic || echo "SSM Agent snap installation failed"
-        systemctl enable --now snap.amazon-ssm-agent.amazon-ssm-agent.service || echo "Failed to enable SSM Agent"
-        ;;
-      *)
-        echo "Unsupported distro ID: $DISTRO_ID"
-        ;;
-    esac
-
-    # Wait for SSM agent to be active
-    echo "Waiting for SSM Agent to become active..."
-    for i in {1..30}; do
-      if systemctl is-active --quiet amazon-ssm-agent || \
-         systemctl is-active --quiet snap.amazon-ssm-agent.amazon-ssm-agent.service; then
-        echo "SSM Agent is active"
-        break
-      fi
-      echo "Waiting for SSM Agent... attempt $i/30"
-      sleep 2
-    done
-
-    # Optionally install EC2 Instance Connect
-    if [ "${var.enable_instance_connect}" = "true" ]; then
-      echo "Installing EC2 Instance Connect..."
-      if command -v yum >/dev/null 2>&1 || command -v dnf >/dev/null 2>&1; then
-        # For RedHat 8/9, install from S3
-        if [ "$DISTRO_ID" = "rhel" ]; then
-          echo "Installing EC2 Instance Connect for RedHat..."
-          mkdir -p /tmp/ec2-instance-connect
-          cd /tmp/ec2-instance-connect
-          # Use current region instead of hardcoded us-west-2
-          curl "https://amazon-ec2-instance-connect-$${AWS_REGION}.s3.$${AWS_REGION}.amazonaws.com/latest/linux_amd64/ec2-instance-connect.rpm" -o ec2-instance-connect.rpm || echo "Failed to download EC2 Instance Connect RPM"
-          curl "https://amazon-ec2-instance-connect-$${AWS_REGION}.s3.$${AWS_REGION}.amazonaws.com/latest/linux_amd64/ec2-instance-connect-selinux.noarch.rpm" -o ec2-instance-connect-selinux.rpm || echo "Failed to download EC2 Instance Connect SELinux RPM"
-
-          if [ -f ec2-instance-connect.rpm ] && [ -f ec2-instance-connect-selinux.rpm ]; then
-            dnf install -y ec2-instance-connect.rpm ec2-instance-connect-selinux.rpm || echo "EC2 Instance Connect installation failed"
-
-            # Patch sshd config to allow EC2 Instance Connect
-            echo "Configuring SSH for EC2 Instance Connect..."
-            echo 'AuthorizedKeysCommand /opt/aws/bin/eic_run_authorized_keys %u %f' >> /etc/ssh/sshd_config
-            echo 'AuthorizedKeysCommandUser ec2-user' >> /etc/ssh/sshd_config
-            restorecon -v /opt/aws/bin/eic_run_authorized_keys || echo "Failed to restore SELinux context"
-            systemctl restart sshd || echo "Failed to restart SSH daemon"
-          else
-            echo "EC2 Instance Connect RPMs not found, trying alternative installation..."
-            dnf install -y ec2-instance-connect || echo "Alternative EC2 Instance Connect installation failed"
-          fi
-        else
-          echo "Installing EC2 Instance Connect for other distros..."
-          (yum install -y ec2-instance-connect || dnf install -y ec2-instance-connect) || echo "EC2 Instance Connect installation failed"
-        fi
-      elif command -v apt-get >/dev/null 2>&1; then
-        echo "Installing EC2 Instance Connect for Debian/Ubuntu..."
-        apt-get install -y ec2-instance-connect || echo "EC2 Instance Connect installation failed"
-      fi
-    fi
-
-    # Optionally install CloudWatch Agent
-    if [ "${var.enable_cloudwatch_agent}" = "true" ]; then
-      echo "Installing CloudWatch Agent..."
-      mkdir -p /opt/aws/amazon-cloudwatch-agent/etc
-      if command -v yum >/dev/null 2>&1 || command -v dnf >/dev/null 2>&1; then
-        (yum install -y amazon-cloudwatch-agent || dnf install -y amazon-cloudwatch-agent) || echo "CloudWatch Agent installation failed"
-      elif command -v apt-get >/dev/null 2>&1; then
-        apt-get install -y amazon-cloudwatch-agent || echo "CloudWatch Agent installation failed"
-      fi
-      systemctl enable amazon-cloudwatch-agent || echo "Failed to enable CloudWatch Agent"
-    fi
-
-    # Optional reboot after patching
-    if [ "${var.patch_and_reboot}" = "true" ]; then
-      echo "Scheduling reboot in 10 seconds..."
-      (sleep 10 && reboot -f) &
-    fi
-
-    echo "User data script execution completed."
-  EOT
-
-  user_data_final = var.user_data_override != "" ? var.user_data_override : "${trimspace(local.base_user_data)}\n${var.user_data_extra}"
+  # Final user data (allow override)
+  user_data_final = var.user_data_override != "" ? var.user_data_override : local.base_user_data
 }
 
 #############################
