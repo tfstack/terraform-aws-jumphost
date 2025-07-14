@@ -97,8 +97,8 @@ No modules.
 | <a name="input_enable_cloudwatch_agent"></a> [enable\_cloudwatch\_agent](#input\_enable\_cloudwatch\_agent) | Install CloudWatch agent and push system logs/metrics. | `bool` | `false` | no |
 | <a name="input_enable_instance_connect"></a> [enable\_instance\_connect](#input\_enable\_instance\_connect) | Install and enable EC2 Instance Connect for SSH (Amazon Linux & Ubuntu only). | `bool` | `false` | no |
 | <a name="input_enable_instance_connect_endpoint"></a> [enable\_instance\_connect\_endpoint](#input\_enable\_instance\_connect\_endpoint) | Create an EC2 Instance Connect Endpoint for private subnet access (requires VPC endpoints or NAT). | `bool` | `false` | no |
+| <a name="input_enable_redhat_repos"></a> [enable\_redhat\_repos](#input\_enable\_redhat\_repos) | Enable Red Hat repositories for RHEL instances (requires manual registration after deployment). If false, uses default repositories that come with RHEL AMIs. | `bool` | `false` | no |
 | <a name="input_enable_ssm"></a> [enable\_ssm](#input\_enable\_ssm) | Enable SSM Agent and permissions via instance profile. | `bool` | `true` | no |
-| <a name="input_enable_redhat_repos"></a> [enable\_redhat\_repos](#input\_enable\_redhat\_repos) | Enable Red Hat repository management for RHEL instances. | `bool` | `false` | no |
 | <a name="input_iam_instance_profile_name"></a> [iam\_instance\_profile\_name](#input\_iam\_instance\_profile\_name) | Existing IAM instance profile to attach instead of creating one. | `string` | `""` | no |
 | <a name="input_instance_connect_endpoint_subnet_id"></a> [instance\_connect\_endpoint\_subnet\_id](#input\_instance\_connect\_endpoint\_subnet\_id) | Subnet ID for the EC2 Instance Connect Endpoint (should be private with NAT or VPC endpoints). | `string` | `""` | no |
 | <a name="input_instance_type"></a> [instance\_type](#input\_instance\_type) | EC2 instance type. | `string` | `"t3.micro"` | no |
