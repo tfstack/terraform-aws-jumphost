@@ -42,3 +42,23 @@ output "instance_connect_command" {
   description = "Convenience AWS CLI command to connect via EC2 Instance Connect (when enabled)."
   value       = var.enable_instance_connect ? "aws ec2-instance-connect ssh --instance-id ${try(aws_instance.this[0].id, "")} --region ${data.aws_region.current.region}" : null
 }
+
+output "iam_role_arn" {
+  description = "ARN of the IAM role created for the jumphost (if created)."
+  value       = try(aws_iam_role.this[0].arn, null)
+}
+
+output "iam_role_name" {
+  description = "Name of the IAM role created for the jumphost (if created)."
+  value       = try(aws_iam_role.this[0].name, null)
+}
+
+output "iam_instance_profile_arn" {
+  description = "ARN of the IAM instance profile created for the jumphost (if created)."
+  value       = try(aws_iam_instance_profile.this[0].arn, null)
+}
+
+output "iam_instance_profile_name" {
+  description = "Name of the IAM instance profile created for the jumphost (if created)."
+  value       = try(aws_iam_instance_profile.this[0].name, null)
+}
