@@ -119,6 +119,10 @@ No modules.
 
 | Name | Description |
 |------|-------------|
+| <a name="output_iam_instance_profile_arn"></a> [iam\_instance\_profile\_arn](#output\_iam\_instance\_profile\_arn) | ARN of the IAM instance profile created for the jumphost (if created). |
+| <a name="output_iam_instance_profile_name"></a> [iam\_instance\_profile\_name](#output\_iam\_instance\_profile\_name) | Name of the IAM instance profile created for the jumphost (if created). |
+| <a name="output_iam_role_arn"></a> [iam\_role\_arn](#output\_iam\_role\_arn) | ARN of the IAM role created for the jumphost (if created). |
+| <a name="output_iam_role_name"></a> [iam\_role\_name](#output\_iam\_role\_name) | Name of the IAM role created for the jumphost (if created). |
 | <a name="output_instance_connect_command"></a> [instance\_connect\_command](#output\_instance\_connect\_command) | Convenience AWS CLI command to connect via EC2 Instance Connect (when enabled). |
 | <a name="output_instance_connect_endpoint_dns_name"></a> [instance\_connect\_endpoint\_dns\_name](#output\_instance\_connect\_endpoint\_dns\_name) | DNS name of the EC2 Instance Connect Endpoint (if created). |
 | <a name="output_instance_connect_endpoint_id"></a> [instance\_connect\_endpoint\_id](#output\_instance\_connect\_endpoint\_id) | ID of the EC2 Instance Connect Endpoint (if created). |
