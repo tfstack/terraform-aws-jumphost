@@ -70,7 +70,7 @@ data "aws_ami" "selected" {
 
 # Resolve the AMI ID, preferring the override
 locals {
-  ami_id = var.ami_id_override != "" ? var.ami_id_override : (var.ami_id_override == "" ? data.aws_ami.selected[0].id : null)
+  ami_id = var.ami_id_override != "" ? var.ami_id_override : (var.ami_id_override == "" && var.create ? data.aws_ami.selected[0].id : null)
 }
 
 #############################
@@ -96,13 +96,13 @@ resource "aws_iam_role" "this" {
 }
 
 resource "aws_iam_role_policy_attachment" "ssm_core" {
-  count      = var.enable_ssm && var.iam_instance_profile_name == "" && var.create ? 1 : 0
+  count      = var.enable_ssm && var.iam_instance_profile_name == "" && var.create && (var.enable_ssm || var.enable_cloudwatch_agent) ? 1 : 0
   role       = aws_iam_role.this[0].name
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
 resource "aws_iam_role_policy_attachment" "cw_agent" {
-  count      = var.enable_cloudwatch_agent && var.iam_instance_profile_name == "" && var.create ? 1 : 0
+  count      = var.enable_cloudwatch_agent && var.iam_instance_profile_name == "" && var.create && (var.enable_ssm || var.enable_cloudwatch_agent) ? 1 : 0
   role       = aws_iam_role.this[0].name
   policy_arn = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
 }
@@ -182,10 +182,10 @@ resource "aws_ec2_instance_connect_endpoint" "this" {
 #############################
 
 locals {
-  instance_profile_name = var.iam_instance_profile_name != "" ? var.iam_instance_profile_name : ((var.enable_ssm || var.enable_cloudwatch_agent) ? aws_iam_instance_profile.this[0].name : null)
+  instance_profile_name = var.iam_instance_profile_name != "" ? var.iam_instance_profile_name : ((var.enable_ssm || var.enable_cloudwatch_agent) && var.create ? aws_iam_instance_profile.this[0].name : null)
 
   effective_security_group_ids = (
-    var.create_security_group ? (
+    var.create_security_group && var.create ? (
       length(var.vpc_security_group_ids) > 0 ? concat(var.vpc_security_group_ids, [aws_security_group.this[0].id]) : [aws_security_group.this[0].id]
     ) : var.vpc_security_group_ids
   )
