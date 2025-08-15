@@ -62,7 +62,7 @@ module "jumphost" {
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.3.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.9.0 |
 
 ## Modules
 
